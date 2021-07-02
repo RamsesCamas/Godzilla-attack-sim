@@ -7,6 +7,8 @@ import numpy as np
 from collections import Counter
 from fractions import Fraction
 import pandas as pd
+from random import randint
+from numpy.random import default_rng
 
 #Cambiar a variables para hacerlas parametrizadas
 MECHAS = ['Cherno Alpha','Eva 01','Gigante de acero',
@@ -25,7 +27,12 @@ GODZILLA_ACTIONS = {    1:'Morder',
                         4:'Aliento atómico',
                         5:'Zarpazo'}
 
-get_rnd_uniform= lambda start,end: round(np.random.uniform(start,end))
+def get_rnd_uniform_2():
+    rng = default_rng()
+    val = rng.uniform(4)
+    return val
+
+get_rnd_uniform= lambda start,end: round(np.random.uniform(start-0.5,end+.5))
 
 summary_battle = lambda team,mecha_attack,godzilla_attack: [team,mecha_attack,godzilla_attack]
 
@@ -53,6 +60,7 @@ def classic_prob():
     pair_g_keys = [i for i in god_keys if i%2==0]
     odd_matrix = []
     pair_matrix = []
+    
 
     for i in WEAPONS.keys():
         if i%2!=0:
@@ -119,8 +127,8 @@ def empiric_prob():
     #print('Total de combinaciones: ',total_combinations)   
 
     election = get_rnd_uniform(0,total_combinations)
-    if election == total_combinations:
-        election-=1
+    if election >= total_combinations:
+        election= total_combinations-1
     elected_team = all_teams[election]
     #print(election)
     #print('El Equipo escogido es: ',elected_team)
@@ -149,13 +157,13 @@ if __name__ == '__main__':
     #Probabilidad Clásica
     counting_table = classic_prob()
     df_classic_prob = pd.DataFrame(counting_table)
-    #print(df_classic_prob)
+    print(df_classic_prob)
 
     #Probabilidad Subjetiva
     sub_prob_table = sub_prob()
     df_sub_prob = pd.DataFrame(sub_prob_table).transpose()
     df_sub_prob.columns = ['Mecha Ataque','Prob. Godzilla','Prob. Total']
-    #print(df_sub_prob)
+    print(df_sub_prob)
 
     #Probabilidad empírica
     n = int(input('Ingrese el número de simulaciones a realizar: '))
@@ -164,34 +172,13 @@ if __name__ == '__main__':
         summary = empiric_prob()
         sim_godzilla_attacks.append(summary[2])
     all_e_prob = []    
-    frec = get_frequency(sim_godzilla_attacks,'Morder')
-    print('Frecuencia de Morder: ',frec)
-    e_prob = get_e_prob(frec,len(sim_godzilla_attacks))
-    all_e_prob.append(e_prob)
-    print('Probabilidad de Morder: ',"{:.2%}".format(e_prob))
+    for i in GODZILLA_ACTIONS.keys():
+        frec = get_frequency(sim_godzilla_attacks,GODZILLA_ACTIONS.get(i))
+        print(f'Frecuencia de {GODZILLA_ACTIONS.get(i)}: ',frec)
+        e_prob = get_e_prob(frec,len(sim_godzilla_attacks))
+        all_e_prob.append(e_prob)
+        print(f'Probabilidad de {GODZILLA_ACTIONS.get(i)}: ',"{:.2%}".format(e_prob))
 
-    frec = get_frequency(sim_godzilla_attacks,'Nada')
-    print('Frecuencia de Nada: ',frec)
-    e_prob = get_e_prob(frec,len(sim_godzilla_attacks))
-    all_e_prob.append(e_prob)
-    print('Probabilidad de Nada: ',"{:.2%}".format(e_prob))
 
-    frec = get_frequency(sim_godzilla_attacks,'Coletazo')
-    print('Frecuencia de Coletazo: ',frec)
-    e_prob = get_e_prob(frec,len(sim_godzilla_attacks))
-    all_e_prob.append(e_prob)
-    print('Probabilidad de Coletazo: ',"{:.2%}".format(e_prob))
-
-    frec = get_frequency(sim_godzilla_attacks,'Aliento atómico')
-    print('Frecuencia de Aliento atómico: ',frec)
-    e_prob = get_e_prob(frec,len(sim_godzilla_attacks))
-    all_e_prob.append(e_prob)
-    print('Probabilidad de Aliento atómico: ',"{:.2%}".format(e_prob))
-
-    frec = get_frequency(sim_godzilla_attacks,'Zarpazo')
-    print('Frecuencia de Zarpazo: ',frec)
-    e_prob = get_e_prob(frec,len(sim_godzilla_attacks))
-    all_e_prob.append(e_prob)
-    print('Probabilidad de Zarpazo: ',"{:.2%}".format(e_prob))
-
-    print('suma total: ',sum(all_e_prob))
+    print('suma total porcentajes: ',sum(all_e_prob))
+    print(get_rnd_uniform_2())
