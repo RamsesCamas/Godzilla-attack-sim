@@ -1,69 +1,63 @@
 from itertools import combinations
 from itertools import chain
-from math import factorial
-import random
-from pandas.core.indexes import multi
 import numpy as np
 from collections import Counter
 from fractions import Fraction
 import pandas as pd
-from random import randint
-from numpy.random import default_rng
+from tkinter import *
+from tkinter import font
+from pandastable import Table
+from tkinter import messagebox
+from PIL import Image, ImageTk
 
 #Cambiar a variables para hacerlas parametrizadas
-MECHAS = ['Cherno Alpha','Eva 01','Gigante de acero',
+mechas = ['Cherno Alpha','Eva 01','Gigante de acero',
           'Gipsy Danger','Gundam','Jet Jaguar','Mazinger Z',
           'Mechagodzilla','Mechani-Kong','Megazord','Moguera','Voltron']
 
-WEAPONS = {    1:'Combate cuerpo a cuerpo',
+mecha_attacks = {    1:'Combate cuerpo a cuerpo',
                2:'Arma de destrucción masiva',
                3:'Arma cuerpo a cuerpo',
                4:'Arma a distancia'
                }
 
-GODZILLA_ACTIONS = {    1:'Morder',
+godzilla_actions = {    1:'Morder',
                         2:'Nada',
                         3:'Coletazo',
                         4:'Aliento atómico',
                         5:'Zarpazo'}
 
-def get_rnd_uniform_2():
-    rng = default_rng()
-    val = rng.uniform(4)
-    return val
 
 get_rnd_uniform= lambda start,end: round(np.random.uniform(start-0.5,end+.5))
 
 summary_battle = lambda team,mecha_attack,godzilla_attack: [team,mecha_attack,godzilla_attack]
 
 
-#posi_fraction = Fraction(decimal).limit_denominator()
-
 def godzilla_turn(mecha_attack):
-    god_keys = list(GODZILLA_ACTIONS.keys())
+    god_keys = list(godzilla_actions.keys())
     god_chose = 0
     if mecha_attack%2==0:
         #Ataque a distancia
-        keys_god = [i for i in god_keys if i%2==0]
+        keys_god = [key for key in god_keys if key%2==0]
         god_chose = get_rnd_uniform(keys_god[0],keys_god[-1])
     else:
         #Ataque cercano
-        keys_god = [i for i in god_keys if i%2!=0]
+        keys_god = [key for key in god_keys if key%2!=0]
         god_chose = get_rnd_uniform(keys_god[0],keys_god[-1])
-    godzilla_move = GODZILLA_ACTIONS.get(god_chose)
+    godzilla_move = godzilla_actions.get(god_chose)
     return godzilla_move
 
 def classic_prob():
-    god_keys = list(GODZILLA_ACTIONS.keys()) 
+    god_keys = list(godzilla_actions.keys()) 
 
-    odd_g_keys = [i for i in god_keys if i%2!=0]
-    pair_g_keys = [i for i in god_keys if i%2==0]
+    odd_g_keys = [key for key in god_keys if key%2!=0]
+    pair_g_keys = [key for key in god_keys if key%2==0]
     odd_matrix = []
     pair_matrix = []
     
 
-    for i in WEAPONS.keys():
-        if i%2!=0:
+    for key in mecha_attacks.keys():
+        if key%2!=0:
             odd_matrix.append(odd_g_keys)
         else:
             pair_matrix.append(pair_g_keys)
@@ -75,54 +69,54 @@ def classic_prob():
     total_config = sum(list(frec_pair.values()) + list(frec_odd.values()))
 
     counting_table = {'Salida':[],'Probabilidad':[],'Redondeado':[]}
-    for i in GODZILLA_ACTIONS.keys():
-        prob = f'{all_frec.get(i)}/{total_config}'
-        prob_r = Fraction(f'{all_frec.get(i)}/{total_config}').limit_denominator()
-        counting_table.get('Salida').append(f'P({GODZILLA_ACTIONS.get(i)})')
+    for key in godzilla_actions.keys():
+        prob = f'{all_frec.get(key)}/{total_config}'
+        prob_r = Fraction(f'{all_frec.get(key)}/{total_config}').limit_denominator()
+        counting_table.get('Salida').append(f'P({godzilla_actions.get(key)})')
         counting_table.get('Probabilidad').append(prob)
         counting_table.get('Redondeado').append(prob_r)
     return counting_table
 
 def sub_prob():
-    god_keys = list(GODZILLA_ACTIONS.keys()) 
-    weapon_keys= list(WEAPONS.keys())
+    god_keys = list(godzilla_actions.keys()) 
+    weapon_keys= list(mecha_attacks.keys())
 
-    odd_g_keys = [i for i in god_keys if i%2!=0]
-    pair_g_keys = [i for i in god_keys if i%2==0]
+    odd_g_keys = [key for key in god_keys if key%2!=0]
+    pair_g_keys = [key for key in god_keys if key%2==0]
     sub_weapons = {}
     
     sub_res = {}
-    for i in weapon_keys:
+    for key in weapon_keys:
         pair_god_probs = []
         odd_god_probs = []
-        sub_weapons[i] = 1/len(weapon_keys)
-        if i%2==0:
+        sub_weapons[key] = 1/len(weapon_keys)
+        if key%2==0:
             for _ in pair_g_keys:
                 pair_god_probs.append(1/len(pair_g_keys))
-            multi_pos = [x * sub_weapons.get(i) for x in pair_god_probs]
-            sub_res[f'{i}'] = (sub_weapons.get(i),multi_pos,sum(multi_pos))
+            multi_pos = [x * sub_weapons.get(key) for x in pair_god_probs]
+            sub_res[f'{key}'] = (sub_weapons.get(key),multi_pos,sum(multi_pos))
         else: 
             for _ in odd_g_keys:
                 odd_god_probs.append(1/len(odd_g_keys))
-            multi_pos = [x * sub_weapons.get(i) for x in odd_god_probs]
-            sub_res[f'{i}'] = (sub_weapons.get(i),multi_pos,sum(multi_pos))
+            multi_pos = [x * sub_weapons.get(key) for x in odd_god_probs]
+            sub_res[f'{key}'] = (sub_weapons.get(key),multi_pos,sum(multi_pos))
     all_sub_prob = {}
     total = 0
-    for i in sub_res.keys():
-        sub_tuple = sub_res.get(i)
+    for key in sub_res.keys():
+        sub_tuple = sub_res.get(key)
         option_pos = str(Fraction(sub_tuple[0]))
         list_pos = sub_tuple[1]
 
         list_pos = [str(Fraction(x).limit_denominator()) for x in list_pos]
         res_pos = str(Fraction(sub_tuple[2]))
         total += sub_tuple[2]
-        all_sub_prob[i] = (option_pos,list_pos,res_pos)
+        all_sub_prob[key] = (option_pos,list_pos,res_pos)
     all_sub_prob['total'] = total
     return all_sub_prob
 
 def empiric_prob():
     #Conteo
-    all_teams = list(combinations(MECHAS,3))
+    all_teams = list(combinations(mechas,3))
     total_combinations = len(all_teams)
     #print('Total de combinaciones: ',total_combinations)   
 
@@ -134,9 +128,9 @@ def empiric_prob():
     #print('El Equipo escogido es: ',elected_team)
 
     #Fase 1
-    weapons_keys = list(WEAPONS.keys())
+    weapons_keys = list(mecha_attacks.keys())
     option = get_rnd_uniform(weapons_keys[0],weapons_keys[-1])
-    weapon = WEAPONS.get(option)    
+    weapon = mecha_attacks.get(option)    
     
     #Segunda fase
     god_attack = godzilla_turn(option)
@@ -148,37 +142,104 @@ def get_frequency(my_list,item):
     item_frec= frec.get(item)
     return item_frec
 
-get_e_prob =  lambda frec,size: frec/size
+get_e_prob =  lambda frec,size: get_e_prob(0,size) if frec == None else frec/size
 
-#Hacer histograma para ver la forma de la curva de las probabilidades
-
-if __name__ == '__main__':
-    
-    #Probabilidad Clásica
+#Probabilidad Clásica
+def run_classic():
+    n_window = createNewWindow()
+    f1 = Frame(n_window)
     counting_table = classic_prob()
     df_classic_prob = pd.DataFrame(counting_table)
+    TestApp(df_classic_prob,f1)
     print(df_classic_prob)
 
-    #Probabilidad Subjetiva
+#Probabilidad Subjetiva
+def run_subjective():
+    n_window = createNewWindow()
+    f1 = Frame(n_window)
     sub_prob_table = sub_prob()
     df_sub_prob = pd.DataFrame(sub_prob_table).transpose()
     df_sub_prob.columns = ['Mecha Ataque','Prob. Godzilla','Prob. Total']
+    TestApp(df_sub_prob,f1)
     print(df_sub_prob)
 
-    #Probabilidad empírica
-    n = int(input('Ingrese el número de simulaciones a realizar: '))
-    sim_godzilla_attacks =[]
-    for i in range(n):
-        summary = empiric_prob()
-        sim_godzilla_attacks.append(summary[2])
-    all_e_prob = []    
-    for i in GODZILLA_ACTIONS.keys():
-        frec = get_frequency(sim_godzilla_attacks,GODZILLA_ACTIONS.get(i))
-        print(f'Frecuencia de {GODZILLA_ACTIONS.get(i)}: ',frec)
-        e_prob = get_e_prob(frec,len(sim_godzilla_attacks))
-        all_e_prob.append(e_prob)
-        print(f'Probabilidad de {GODZILLA_ACTIONS.get(i)}: ',"{:.2%}".format(e_prob))
+#Probabilidad empírica
+def run_simulation():
+    if entry1.get() == '':
+        messagebox.showinfo(message="Ingrése un número", title="Error")
+    else:
+        n = int(entry1.get())
+        sim_godzilla_attacks =[]
+        for i in range(n):
+            summary = empiric_prob()
+            sim_godzilla_attacks.append(summary[2])
+        results = {'Acciones':[],'Probabilidad':[]}   
+        for i in godzilla_actions.keys():
+            frec = get_frequency(sim_godzilla_attacks,godzilla_actions.get(i))
+            e_prob = get_e_prob(frec,len(sim_godzilla_attacks))
+            results.get('Acciones').append(godzilla_actions.get(i))
+            results.get('Probabilidad').append("{:.2%}".format(e_prob))
+        results_df = pd.DataFrame(results)
+        n_window = createNewWindow()
+        f1 = Frame(n_window)
+        TestApp(results_df,f1)
 
+def createNewWindow():
+    newWindow = Toplevel(root)
+    return newWindow
 
-    print('suma total porcentajes: ',sum(all_e_prob))
-    print(get_rnd_uniform_2())
+class TestApp(Frame):
+    """Basic test frame for the table"""
+    def __init__(self,df,frame, parent=None):
+        self.parent = parent
+        Frame.__init__(self)
+        self.main = self.master
+        self.main.geometry('1280x720+200+100')
+        self.main.title('Simulación Godzilla')
+        
+        frame.pack(fill=BOTH,expand=1)
+        self.table = pt = Table(frame, dataframe=df,
+                                showtoolbar=True, showstatusbar=True)
+        pt.show()
+        return
+
+if __name__ == '__main__':
+    
+    root = Tk()
+    root.title('Simulación Godzilla')
+    root.geometry('1280x720')
+    btn_font = font.Font(size=14)
+    btn_classic = Button(root,text='Calcular por Probabilidad Clásica',
+                    width=27,height=1,command=run_classic)
+    btn_classic['font'] = btn_font
+    btn_classic.place(x=10,y=650)
+
+    btn_subjetive = Button(root,text='Calcular por Probabilidad Subjetiva',
+                    width=27,height=1,command=run_subjective)
+    btn_subjetive['font'] = btn_font
+    btn_subjetive.place(x=460,y=650)
+
+    btn_empiric = Button(root,text='Calcular por Probabilidad Empírica',
+                    width=27,height=1,command=run_simulation)
+    btn_empiric['font'] = btn_font
+    btn_empiric.place(x=910,y=650)
+    
+    entry1 = Entry(root)
+    entry1.place(x=910,y=500)
+
+    entrada = Label(root,text='Ingresar numero de veces que se realizará\n la simulación',height=2)
+    entrada.place(x=900,y=450)
+    entrada['font'] = btn_font
+
+    image1 = Image.open("godzilla.jpg")
+    test = ImageTk.PhotoImage(image1) 
+    label1 = Label(image=test)
+    label1.image = test  
+    label1.place(x=600, y=0)
+    image2 = Image.open("mecha.jpg")
+    image2 = image2.resize((500,350))
+    test = ImageTk.PhotoImage(image2) 
+    label1 = Label(image=test)
+    label1.image = test  
+    label1.place(x=0, y=0)
+    root.mainloop()
